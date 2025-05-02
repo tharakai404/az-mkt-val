@@ -2,6 +2,27 @@ import React, { useState, useEffect } from 'react';
 
 const SearchForm = () => {
   const [years, setYears] = useState([]);
+  const [selectedMake, setSelectedMake] = useState('');
+  const [models, setModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState('');
+
+  const modelOptions = {
+    'Toyota': ['Camry', 'Corolla', 'RAV4', 'Highlander', 'Prius'],
+    'Honda': ['Accord', 'Civic', 'CR-V', 'Pilot', 'Odyssey'],
+    'Ford': ['F-150', 'Escape', 'Explorer', 'Mustang', 'Focus'],
+    'Chevrolet': ['Silverado', 'Equinox', 'Tahoe', 'Camaro', 'Malibu'],
+    'BMW': ['3 Series', '5 Series', 'X3', 'X5', '7 Series'],
+    'Mercedes': ['C-Class', 'E-Class', 'GLC', 'GLE', 'S-Class'],
+    'Audi': ['A4', 'A6', 'Q5', 'Q7', 'A8'],
+    'Tesla': ['Model 3', 'Model S', 'Model X', 'Model Y', 'Cybertruck']
+  };
+
+  const handleMakeChange = (e) => {
+    const make = e.target.value;
+    setSelectedMake(make);
+    setModels(modelOptions[make] || []);
+    setSelectedModel(''); // Reset model
+  };
 
   useEffect(() => {
     const currentYear = new Date().getFullYear();
@@ -35,22 +56,21 @@ const SearchForm = () => {
                         <form id="vehicleSearchForm">
                             <div className="row">
                                 <div className="col-md-6 mb-3">
-                                    <label htmlFor="make" className="form-label">Make</label>
-                                    <select className="form-select" id="make" required>
-                                        <option value="Toyota">Toyota</option>
-                                        <option value="Honda">Honda</option>
-                                        <option value="Ford">Ford</option>
-                                        <option value="Chevrolet">Chevrolet</option>
-                                        <option value="BMW">BMW</option>
-                                        <option value="Mercedes">Mercedes</option>
-                                        <option value="Audi">Audi</option>
-                                        <option value="Tesla">Tesla</option>
+                                <label htmlFor="make" className="form-label">Make</label>
+                                    <select className="form-select" id="make" required onChange={handleMakeChange} value={selectedMake}>
+                                        <option value="" disabled>Select Make</option>
+                                        {Object.keys(modelOptions).map(make => (
+                                        <option key={make} value={make}>{make}</option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="col-md-6 mb-3">
                                     <label htmlFor="model" className="form-label">Model</label>
-                                    <select className="form-select" id="model" disabled required>
-                                        {/* <option value="" selected disabled>Select Model</option> */}
+                                    <select className="form-select" id="model" required disabled={!selectedMake} value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}>
+                                        <option value="" disabled>Select Model</option>
+                                        {models.map(model => (
+                                        <option key={model} value={model}>{model}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
