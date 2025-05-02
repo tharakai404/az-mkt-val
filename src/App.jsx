@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Landing from './Landing';
-import Verification from './verification';
+import Verification from './Verification';
 import SearchForm from './SearchForm';
 
 export default function App() {
