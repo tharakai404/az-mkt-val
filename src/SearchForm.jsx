@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import logoAz from './assets/allianz-logo.png'; 
+import axios from 'axios';
+import logoAz from './assets/allianz-logo.png';
 
 const SearchForm = () => {
+  const [vehicleTypes, setVehicleTypes] = useState([]);
+  const [makes, setMakes] = useState([]);
+  const [models, setModels] = useState([]);
   const [years, setYears] = useState([]);
+
   const [vehicleType, setVehicleType] = useState('');
   const [selectedMake, setSelectedMake] = useState('');
-  const [models, setModels] = useState([]);
   const [selectedModel, setSelectedModel] = useState('');
   const [year, setYear] = useState('');
   const [fuelType, setFuelType] = useState('');
@@ -14,25 +18,34 @@ const SearchForm = () => {
   const [maxPrice, setMaxPrice] = useState('');
   const [keywords, setKeywords] = useState('');
 
-  const vehicleMakeOptions = {
-    'Passenger Car': ['Toyota', 'Honda', 'BMW', 'Tesla'],
-    'Three-Wheeler': ['Bajaj', 'TVS', 'Piaggio'],
-    'All Types': ['Toyota', 'Honda', 'BMW', 'Tesla', 'Bajaj', 'TVS', 'Piaggio', 'Ford', 'Chevrolet', 'Mercedes', 'Audi']
-  };
+//   const token = localStorage.getItem('token');
+  const token =  'valid-token-123';
 
-  const modelOptions = {
-    'Toyota': ['Camry', 'Corolla', 'RAV4'],
-    'Honda': ['Accord', 'Civic', 'CR-V'],
-    'BMW': ['3 Series', 'X5'],
-    'Tesla': ['Model 3', 'Model S'],
-    'Bajaj': ['RE', 'Maxima', 'Compact'],
-    'TVS': ['King Deluxe', 'King Duramax'],
-    'Piaggio': ['Ape City', 'Ape Auto DX'],
-    'Ford': ['F-150', 'Escape'],
-    'Chevrolet': ['Equinox', 'Tahoe'],
-    'Mercedes': ['C-Class', 'GLC'],
-    'Audi': ['A4', 'Q5']
-  };
+  const api = axios.create({
+    baseURL: 'http://localhost:8080',
+    headers: {
+     "Authorization": `Bearer ${token}`,
+    "Content-Type": "application/json"
+    },
+  });
+
+  useEffect(() => {
+    // Fetch vehicle types
+    api.get('/api/vehicle-types')
+      .then((response) => setVehicleTypes(Array.isArray(response.data) ? response.data : []))
+      .catch((error) => {
+        console.error('Failed to load vehicle types', error);
+        setVehicleTypes([]);
+      });
+
+    // Fetch years
+    api.get('/api/years')
+      .then((response) => setYears(Array.isArray(response.data) ? response.data : []))
+      .catch((error) => {
+        console.error('Failed to load years', error);
+        setYears([]);
+      });
+  }, []);
 
   const handleVehicleTypeChange = (e) => {
     const type = e.target.value;
@@ -40,13 +53,28 @@ const SearchForm = () => {
     setSelectedMake('');
     setSelectedModel('');
     setModels([]);
+    setMakes([]);
+
+    api.get(`/api/makes?vehicleType=${encodeURIComponent(type)}`)
+      .then((response) => setMakes(Array.isArray(response.data) ? response.data : []))
+      .catch((error) => {
+        console.error('Failed to load makes', error);
+        setMakes([]);
+      });
   };
 
   const handleMakeChange = (e) => {
     const make = e.target.value;
     setSelectedMake(make);
-    setModels(modelOptions[make] || []);
     setSelectedModel('');
+    setModels([]);
+
+    api.get(`/api/models?make=${encodeURIComponent(make)}`)
+      .then((response) => setModels(Array.isArray(response.data) ? response.data : []))
+      .catch((error) => {
+        console.error('Failed to load models', error);
+        setModels([]);
+      });
   };
 
   const handleSubmit = (e) => {
@@ -60,29 +88,18 @@ const SearchForm = () => {
       mileage,
       minPrice,
       maxPrice,
-      keywords
+      keywords,
     };
     console.log("Form Data:", formData);
-    // Further backend call or processing here
+    // send to backend as needed
   };
-
-  useEffect(() => {
-    const currentYear = new Date().getFullYear();
-    const yearArray = [];
-    for (let i = currentYear; i >= currentYear - 30; i--) {
-      yearArray.push(i);
-    }
-    setYears(yearArray);
-  }, []);
-
-  const currentMakes = vehicleType ? vehicleMakeOptions[vehicleType] || [] : [];
 
   return (
     <>
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
         <div className="container">
           <a className="navbar-brand" href="index.html">
-              <img src={logoAz} alt="Allianz" height="30"/> 
+            <img src={logoAz} alt="Allianz" height="30" />
           </a>
           <div className="navbar-text text-white ms-auto">
             <small>Step 2 of 3: Vehicle Details</small>
@@ -110,9 +127,9 @@ const SearchForm = () => {
                         onChange={handleVehicleTypeChange}
                       >
                         <option value="" disabled>Select Vehicle Type</option>
-                        <option value="Passenger Car">Passenger Car</option>
-                        <option value="Three-Wheeler">Three-Wheeler</option>
-                        <option value="All Types">All Types</option>
+                        {vehicleTypes.map((type) => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
                       </select>
                     </div>
 
@@ -127,7 +144,7 @@ const SearchForm = () => {
                         disabled={!vehicleType}
                       >
                         <option value="" disabled>Select Make</option>
-                        {currentMakes.map((make) => (
+                        {makes.map((make) => (
                           <option key={make} value={make}>{make}</option>
                         ))}
                       </select>
@@ -144,7 +161,7 @@ const SearchForm = () => {
                         onChange={(e) => setSelectedModel(e.target.value)}
                       >
                         <option value="" disabled>Select Model</option>
-                        {models.map(model => (
+                        {models.map((model) => (
                           <option key={model} value={model}>{model}</option>
                         ))}
                       </select>
@@ -154,10 +171,8 @@ const SearchForm = () => {
                       <label htmlFor="year" className="form-label">Year</label>
                       <select className="form-select" id="year" required value={year} onChange={(e) => setYear(e.target.value)}>
                         <option value="" disabled>Select Year</option>
-                        {years.map((year) => (
-                          <option key={year} value={year}>
-                            {year}
-                          </option>
+                        {years.map((y) => (
+                          <option key={y} value={y}>{y}</option>
                         ))}
                       </select>
                     </div>
@@ -192,6 +207,7 @@ const SearchForm = () => {
                         onChange={(e) => setMileage(e.target.value)}
                       />
                     </div>
+
                     <div className="col-md-4 mb-3">
                       <label htmlFor="keywords" className="form-label">Keywords (optional)</label>
                       <input
@@ -230,7 +246,7 @@ const SearchForm = () => {
                   </div>
 
                   <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <a href="verify.html" className="btn btn-outline-secondary me-md-2">Back</a>
+                    <a href="/" className="btn btn-outline-secondary me-md-2">Back</a>
                     <button type="submit" className="btn btn-primary">Search Vehicle Value</button>
                   </div>
                 </form>
@@ -241,10 +257,8 @@ const SearchForm = () => {
       </div>
 
       <footer className="bg-dark text-white py-4 mt-5">
-        <div className="container">
-          <div className="text-center">
-            <p className="mb-0">© 2023 Allianz Vehicle Valuation Service. All rights reserved.</p>
-          </div>
+        <div className="container text-center">
+          <p className="mb-0">© 2023 Allianz Vehicle Valuation Service. All rights reserved.</p>
         </div>
       </footer>
     </>

@@ -1,32 +1,71 @@
 import React, { useState } from 'react';
-import { useNavigate, Routes, Route } from 'react-router-dom';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
-function Verification () {
-    const navigate = useNavigate();
-  const [codeSent, setCodeSent] = useState(false);
+function Verification() {
+  const navigate = useNavigate();
   const [mobileNumber, setMobileNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
+  const [codeSent, setCodeSent] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendCode = () => {
+  // Handle sending OTP
+  const handleSendCode = async () => {
     if (!mobileNumber) {
       alert('Please enter a valid mobile number.');
       return;
     }
-    setCodeSent(true);
-    alert('A 6-digit verification code has been sent to your mobile number.');
+
+    setIsLoading(true);
+    try {
+      // API call to send OTP
+      const response = await axios.post('http://localhost:8080/api/otp/send', { mobileNumber });
+      if (response.status === 200) {
+        alert('A 6-digit verification code has been sent to your mobile number.');
+        setCodeSent(true);  // Enable OTP input
+      }
+    } catch (error) {
+      alert('Failed to send OTP.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleVerify = (e) => {
+  // Handle OTP verification
+  const handleVerify = async (e) => {
     e.preventDefault();
-    // Simulate verification
-    navigate('/verify');
+
+    if (verificationCode.length !== 6) {
+      alert('Please enter a valid 6-digit verification code.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // API call to verify OTP
+      const response = await axios.post('http://localhost:8080/api/otp/verify', {
+        mobileNumber,
+        otp: verificationCode,
+      });
+
+      if (response.status === 200) {
+        const { token } = response.data;
+        localStorage.setItem('authToken', token);  // Store the token
+        alert('Verification successful!');
+        navigate('/search');  // Redirect to the dashboard after successful verification
+      }
+    } catch (error) {
+      alert('Failed to verify OTP. Please check the code.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div>
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
         <div className="container">
-          <a className="navbar-brand" href="index.html">
+          <a className="navbar-brand" href="/">
             {/* <img src="img/allianz-logo.png" alt="Allianz" height="30" /> */}
           </a>
         </div>
@@ -42,7 +81,7 @@ function Verification () {
               <div className="card-body">
                 <div className="row">
                   <div className="col-md-6">
-                    <form onSubmit={() => navigate('/search')}>
+                    <form onSubmit={handleVerify}>
                       <div className="mb-3">
                         <label htmlFor="mobileNumber" className="form-label">Mobile Number</label>
                         <div className="input-group">
@@ -73,12 +112,12 @@ function Verification () {
                         <small className="text-muted">We'll send you a verification code</small>
                       </div>
                       {!codeSent ? (
-                        <button type="button" className="btn btn-primary" onClick={handleSendCode}>
-                          Send Verification Code
+                        <button type="button" className="btn btn-primary" onClick={handleSendCode} disabled={isLoading}>
+                          {isLoading ? 'Sending...' : 'Send Verification Code'}
                         </button>
                       ) : (
-                        <button type="submit" className="btn btn-success">
-                          Verify & Continue
+                        <button type="submit" className="btn btn-success" disabled={isLoading}>
+                          {isLoading ? 'Verifying...' : 'Verify & Continue'}
                         </button>
                       )}
                     </form>
@@ -116,6 +155,6 @@ function Verification () {
       </footer>
     </div>
   );
-};
+}
 
 export default Verification;
