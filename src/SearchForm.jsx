@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import logoAz from './assets/allianz-logo.png';
+import AutoCompleteDropDown from './components/AutoCompleteDropDown';
 
 const SearchForm = () => {
   const [vehicleTypes, setVehicleTypes] = useState([]);
@@ -9,28 +10,45 @@ const SearchForm = () => {
   const [years, setYears] = useState([]);
 
   const [vehicleType, setVehicleType] = useState('');
-  const [selectedMake, setSelectedMake] = useState('');
+  const [selectedMake, setSelectedMake] = useState(null);
   const [selectedModel, setSelectedModel] = useState('');
   const [year, setYear] = useState('');
-  const [fuelType, setFuelType] = useState('');
-  const [mileage, setMileage] = useState('');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const [keywords, setKeywords] = useState('');
+  const [makeQuery, setMakeQuery] = useState('');
+  const [modelQuery, setModelQuery] = useState('');
 
-//   const token = localStorage.getItem('token');
-  const token =  'valid-token-123';
+  const token = 'valid-token-123';
+
+  const [selectedFilm, setSelectedFilm] =  useState('');
+  
+  // const [selectedModel, setSelectedModel] =  useState('');
+
+  const handleValueChange = (newValue) => {
+    debugger;
+    setSelectedFilm(newValue); // Update state
+    console.log('Selected movie:', newValue); // Trigger your custom logic
+    // Call any other method you need here
+    setMakeQuery(newValue);
+    setSelectedMake(newValue);
+    setSelectedModel('');
+    setModels([]);
+    
+  };
+
+      const top100Films = [
+        { label: 'The Godfather', id: 1 },
+        { label: 'Pulp Fiction', id: 2 },
+      ];
 
   const api = axios.create({
     baseURL: 'http://localhost:8080',
     headers: {
-     "Authorization": `Bearer ${token}`,
-    "Content-Type": "application/json"
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
     },
   });
 
   useEffect(() => {
-    // Fetch vehicle types
+    // Fetch vehicle types and years on initial load
     api.get('/api/vehicle-types')
       .then((response) => setVehicleTypes(Array.isArray(response.data) ? response.data : []))
       .catch((error) => {
@@ -38,7 +56,6 @@ const SearchForm = () => {
         setVehicleTypes([]);
       });
 
-    // Fetch years
     api.get('/api/years')
       .then((response) => setYears(Array.isArray(response.data) ? response.data : []))
       .catch((error) => {
@@ -52,8 +69,8 @@ const SearchForm = () => {
     setVehicleType(type);
     setSelectedMake('');
     setSelectedModel('');
-    setModels([]);
     setMakes([]);
+    setModels([]);
 
     api.get(`/api/makes?vehicleType=${encodeURIComponent(type)}`)
       .then((response) => setMakes(Array.isArray(response.data) ? response.data : []))
@@ -64,18 +81,46 @@ const SearchForm = () => {
   };
 
   const handleMakeChange = (e) => {
-    const make = e.target.value;
-    setSelectedMake(make);
+    setMakeQuery(e.target.value);
+    setSelectedMake('');
     setSelectedModel('');
     setModels([]);
-
-    api.get(`/api/models?make=${encodeURIComponent(make)}`)
-      .then((response) => setModels(Array.isArray(response.data) ? response.data : []))
-      .catch((error) => {
-        console.error('Failed to load models', error);
-        setModels([]);
-      });
   };
+
+  const handleModelChange = (e) => {
+    setModelQuery(e.target.value);
+    setSelectedModel('');
+  };
+
+  // Fetch Makes with Autocomplete
+  useEffect(() => {
+   // if (makeQuery && makeQuery.length >= 3) {
+      if (true) {
+      api.get(`/api/makes?vehicleType=${encodeURIComponent(vehicleType)}`)
+        .then((response) => setMakes(Array.isArray(response.data) ? response.data : []))
+        .catch((error) => {
+          console.error('Failed to load makes', error);
+          setMakes([]);
+        });
+    } else {
+      setMakes([]); // Clear makes if the query length is less than 3
+    }
+  }, [makeQuery]);
+
+  // Fetch Models with Autocomplete
+  useEffect(() => {
+    // if (modelQuery.length >= 3 && selectedMake) {
+      if (true) {
+      api.get(`/api/models?make=${encodeURIComponent(selectedMake)}`)
+        .then((response) => setModels(Array.isArray(response.data) ? response.data : []))
+        .catch((error) => {
+          console.error('Failed to load models', error);
+          setModels([]);
+        });
+    } else {
+      setModels([]); // Clear models if the query length is less than 3 or no make selected
+    }
+  }, [modelQuery, selectedMake]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -93,7 +138,7 @@ const SearchForm = () => {
     console.log("Form Data:", formData);
     // send to backend as needed
   };
-
+  
   return (
     <>
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -133,40 +178,7 @@ const SearchForm = () => {
                       </select>
                     </div>
 
-                    <div className="col-md-6 mb-3">
-                      <label htmlFor="make" className="form-label">Make</label>
-                      <select
-                        className="form-select"
-                        id="make"
-                        required
-                        value={selectedMake}
-                        onChange={handleMakeChange}
-                        disabled={!vehicleType}
-                      >
-                        <option value="" disabled>Select Make</option>
-                        {makes.map((make) => (
-                          <option key={make} value={make}>{make}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="col-md-6 mb-3">
-                      <label htmlFor="model" className="form-label">Model</label>
-                      <select
-                        className="form-select"
-                        id="model"
-                        required
-                        disabled={!selectedMake}
-                        value={selectedModel}
-                        onChange={(e) => setSelectedModel(e.target.value)}
-                      >
-                        <option value="" disabled>Select Model</option>
-                        {models.map((model) => (
-                          <option key={model} value={model}>{model}</option>
-                        ))}
-                      </select>
-                    </div>
-
+                    
                     <div className="col-md-6 mb-3">
                       <label htmlFor="year" className="form-label">Year</label>
                       <select className="form-select" id="year" required value={year} onChange={(e) => setYear(e.target.value)}>
@@ -177,90 +189,41 @@ const SearchForm = () => {
                       </select>
                     </div>
                   </div>
+                  <div className="row">
+                    <div className="col-md-6 mb-3">
+                      <label htmlFor="vehicleType" className="form-label">Vehicle Make</label>
+                      <AutoCompleteDropDown
+                      name="Select Make"
+                      top100Films={makes}
+                     value={setSelectedMake}
+                 //     onValueChange={handleValueChange}
+                    />
+                    </div>
+
+                    
+                    <div className="col-md-6 mb-3">
+                      <label htmlFor="year" className="form-label">Vehicle Model</label>
+                      <AutoCompleteDropDown
+                      name="Select Models"
+                   //   getOptionLabel={(option) => (option ? option.label || '' : '')}
+                      top100Films={models}
+                      value={setSelectedModel}
+                      // onValueChange={handleValueChange}
+                    />
+                    </div>
+                  </div>
 
                   <div className="row">
                     <div className="col-md-4 mb-3">
-                      <label htmlFor="fuelType" className="form-label">Fuel Type</label>
-                      <select
-                        className="form-select"
-                        id="fuelType"
-                        required
-                        value={fuelType}
-                        onChange={(e) => setFuelType(e.target.value)}
-                      >
-                        <option value="" disabled>Select Fuel Type</option>
-                        <option value="Gasoline">Gasoline</option>
-                        <option value="Diesel">Diesel</option>
-                        <option value="Hybrid">Hybrid</option>
-                        <option value="Electric">Electric</option>
-                      </select>
-                    </div>
-
-                    <div className="col-md-4 mb-3">
-                      <label htmlFor="mileage" className="form-label">Mileage (optional)</label>
-                      <input
-                        type="number"
-                        className="form-control"
-                        id="mileage"
-                        placeholder="e.g. 45000"
-                        value={mileage}
-                        onChange={(e) => setMileage(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="col-md-4 mb-3">
-                      <label htmlFor="keywords" className="form-label">Keywords (optional)</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="keywords"
-                        placeholder="e.g. SUV, Automatic, AWD"
-                        value={keywords}
-                        onChange={(e) => setKeywords(e.target.value)}
-                      />
-                      <small className="text-muted">Add any specific features or trim levels</small>
+                      <button type="submit" className="btn btn-primary w-100">Search</button>
                     </div>
                   </div>
-
-                  <div className="mb-3">
-                    <label htmlFor="priceRange" className="form-label">Price Range (optional)</label>
-                    <div className="d-flex align-items-center">
-                      <input
-                        type="number"
-                        className="form-control me-2"
-                        id="minPrice"
-                        placeholder="Min"
-                        value={minPrice}
-                        onChange={(e) => setMinPrice(e.target.value)}
-                      />
-                      <span className="mx-2">to</span>
-                      <input
-                        type="number"
-                        className="form-control ms-2"
-                        id="maxPrice"
-                        placeholder="Max"
-                        value={maxPrice}
-                        onChange={(e) => setMaxPrice(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <a href="/" className="btn btn-outline-secondary me-md-2">Back</a>
-                    <button type="submit" className="btn btn-primary">Search Vehicle Value</button>
-                  </div>
-                </form>
+                </form>      
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      <footer className="bg-dark text-white py-4 mt-5">
-        <div className="container text-center">
-          <p className="mb-0">© 2023 Allianz Vehicle Valuation Service. All rights reserved.</p>
-        </div>
-      </footer>
     </>
   );
 };
