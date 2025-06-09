@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import logoAz from './assets/allianz-logo.png';
 import AutoCompleteDropDown from './components/AutoCompleteDropDown';
+import { useNavigate } from 'react-router-dom';
 
 const SearchForm = () => {
   const [vehicleTypes, setVehicleTypes] = useState([]);
@@ -18,15 +19,12 @@ const SearchForm = () => {
 
   const token = 'valid-token-123';
 
-  const [selectedFilm, setSelectedFilm] =  useState('');
+  const navigate = useNavigate();
+
   
   // const [selectedModel, setSelectedModel] =  useState('');
 
-  const handleValueChange = (newValue) => {
-    debugger;
-    setSelectedFilm(newValue); // Update state
-    console.log('Selected movie:', newValue); // Trigger your custom logic
-    // Call any other method you need here
+  const handleValueMakeChange = (newValue) => {
     setMakeQuery(newValue);
     setSelectedMake(newValue);
     setSelectedModel('');
@@ -34,10 +32,11 @@ const SearchForm = () => {
     
   };
 
-      const top100Films = [
-        { label: 'The Godfather', id: 1 },
-        { label: 'Pulp Fiction', id: 2 },
-      ];
+  const handleValueModelChange = (newValue) => {
+    setSelectedModel(newValue);
+   // setModels([]);
+    
+  };
 
   const api = axios.create({
     baseURL: 'http://localhost:8080',
@@ -80,17 +79,7 @@ const SearchForm = () => {
       });
   };
 
-  const handleMakeChange = (e) => {
-    setMakeQuery(e.target.value);
-    setSelectedMake('');
-    setSelectedModel('');
-    setModels([]);
-  };
 
-  const handleModelChange = (e) => {
-    setModelQuery(e.target.value);
-    setSelectedModel('');
-  };
 
   // Fetch Makes with Autocomplete
   useEffect(() => {
@@ -111,7 +100,7 @@ const SearchForm = () => {
   useEffect(() => {
     // if (modelQuery.length >= 3 && selectedMake) {
       if (true) {
-      api.get(`/api/models?make=${encodeURIComponent(selectedMake)}`)
+      api.get(`/api/models?type=${encodeURIComponent(vehicleType)}&make=${encodeURIComponent(selectedMake?.id)}`)
         .then((response) => setModels(Array.isArray(response.data) ? response.data : []))
         .catch((error) => {
           console.error('Failed to load models', error);
@@ -129,14 +118,17 @@ const SearchForm = () => {
       make: selectedMake,
       model: selectedModel,
       year,
-      fuelType,
-      mileage,
-      minPrice,
-      maxPrice,
-      keywords,
     };
     console.log("Form Data:", formData);
     // send to backend as needed
+    navigate("/result", {
+      state: {
+        vehicleType,
+        make: selectedMake,
+        model: selectedModel,
+        year
+      }
+    });
   };
   
   return (
@@ -196,7 +188,7 @@ const SearchForm = () => {
                       name="Select Make"
                       top100Films={makes}
                      value={setSelectedMake}
-                 //     onValueChange={handleValueChange}
+                      onValueChange={handleValueMakeChange}
                     />
                     </div>
 
@@ -208,7 +200,7 @@ const SearchForm = () => {
                    //   getOptionLabel={(option) => (option ? option.label || '' : '')}
                       top100Films={models}
                       value={setSelectedModel}
-                      // onValueChange={handleValueChange}
+                       onValueChange={handleValueModelChange}
                     />
                     </div>
                   </div>
