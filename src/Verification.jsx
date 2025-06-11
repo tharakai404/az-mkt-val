@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import logoAz from './assets/Allianz.svg';
+import { useAuth } from "./context/AuthContext";
 
 function Verification() {
+  const { login } = useAuth();
   const navigate = useNavigate();
+
+  const [userName, setUserName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
@@ -18,11 +23,10 @@ function Verification() {
 
     setIsLoading(true);
     try {
-      // API call to send OTP
       const response = await axios.post('http://localhost:8080/api/otp/send', { mobileNumber });
       if (response.status === 200) {
         alert('A 6-digit verification code has been sent to your mobile number.');
-        setCodeSent(true);  // Enable OTP input
+        setCodeSent(true);
       }
     } catch (error) {
       alert('Failed to send OTP.');
@@ -35,6 +39,11 @@ function Verification() {
   const handleVerify = async (e) => {
     e.preventDefault();
 
+    if (!userName.trim()) {
+      alert('Please enter your name.');
+      return;
+    }
+
     if (verificationCode.length !== 6) {
       alert('Please enter a valid 6-digit verification code.');
       return;
@@ -42,20 +51,21 @@ function Verification() {
 
     setIsLoading(true);
     try {
-      // API call to verify OTP
       const response = await axios.post('http://localhost:8080/api/otp/verify', {
         mobileNumber,
         otp: verificationCode,
+        userName, // Sending name to backend if needed
       });
 
       if (response.status === 200) {
         const { token } = response.data;
-        localStorage.setItem('authToken', token);  // Store the token
+        localStorage.setItem('authToken', token);
         alert('Verification successful!');
-        navigate('/search');  // Redirect to the dashboard after successful verification
+        login(userName, 'valid-token-123');
+        navigate('/search');
       }
     } catch (error) {
-      alert('Failed to verify OTP. Please check the code.');
+      alert(error.response?.data?.message || 'Failed to verify OTP. Please check the code.');
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +76,7 @@ function Verification() {
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
         <div className="container">
           <a className="navbar-brand" href="/">
-            {/* <img src="img/allianz-logo.png" alt="Allianz" height="30" /> */}
+            <img src={logoAz} alt="Allianz" height="40" />
           </a>
         </div>
       </nav>
@@ -83,6 +93,19 @@ function Verification() {
                   <div className="col-md-6">
                     <form onSubmit={handleVerify}>
                       <div className="mb-3">
+                        <label htmlFor="userName" className="form-label">Your Name</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="userName"
+                          placeholder="Enter your name"
+                          value={userName}
+                          onChange={(e) => setUserName(e.target.value)}
+                          required
+                        />
+                      </div>
+
+                      <div className="mb-3">
                         <label htmlFor="mobileNumber" className="form-label">Mobile Number</label>
                         <div className="input-group">
                           <span className="input-group-text">+1</span>
@@ -97,6 +120,7 @@ function Verification() {
                           />
                         </div>
                       </div>
+
                       <div className="mb-3">
                         <label htmlFor="verificationCode" className="form-label">Verification Code</label>
                         <input
@@ -111,6 +135,7 @@ function Verification() {
                         />
                         <small className="text-muted">We'll send you a verification code</small>
                       </div>
+
                       {!codeSent ? (
                         <button type="button" className="btn btn-primary" onClick={handleSendCode} disabled={isLoading}>
                           {isLoading ? 'Sending...' : 'Send Verification Code'}

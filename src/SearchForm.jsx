@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import logoAz from './assets/allianz-logo.png';
+import logoAz from './assets/Allianz.svg'; 
 import AutoCompleteDropDown from './components/AutoCompleteDropDown';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,7 +17,7 @@ const SearchForm = () => {
   const [makeQuery, setMakeQuery] = useState('');
   const [modelQuery, setModelQuery] = useState('');
 
-  const token = 'valid-token-123';
+  const token = sessionStorage.getItem("token");
 
   const navigate = useNavigate();
 

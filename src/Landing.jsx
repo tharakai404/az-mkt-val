@@ -1,6 +1,6 @@
 import { useNavigate, Routes, Route } from 'react-router-dom';
 import React from 'react';
-import logoAz from './assets/allianz-logo.png'; 
+import logoAz from './assets/Allianz.svg'; 
 import landingPhoto from './assets/vehicle-valuation.jpg'; 
 
 
@@ -13,7 +13,7 @@ function Landing() {
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
         <div className="container">
             <a className="navbar-brand" href="#">
-                 <img src={logoAz} alt="Allianz" height="30"/> 
+                 <img src={logoAz} alt="Allianz" height="40"/> 
             </a>
             <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span className="navbar-toggler-icon"></span>

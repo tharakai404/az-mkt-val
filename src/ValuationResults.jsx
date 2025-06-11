@@ -1,17 +1,31 @@
 import React from "react";
-import logoAz from './assets/allianz-logo.png';
+import logoAz from './assets/Allianz.svg'; 
 import { useLocation } from "react-router-dom";
+import axios from 'axios';
 
 const ValuationResults = () => {
-
     const { state } = useLocation();
     const {  vehicleType,make,model,year} = state || {};
+    const token = sessionStorage.getItem("token");
+
+    const api = axios.create({
+        baseURL: 'http://localhost:8080',
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+      });
+
+      const getMkValue = (newValue) => {
+      
+        
+      };
 
   return (
     <>
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
         <div className="container">
-          <a className="navbar-brand" href="index.html">
+          <a className="navbar-brand" href="/">
             <img src={logoAz} alt="Allianz" height="30" />
           </a>
           <div className="navbar-text text-white ms-auto">
@@ -30,7 +44,7 @@ const ValuationResults = () => {
               <div className="card-body">
                 <div className="alert alert-success">
                   <h5>{year} {make.label} {model.label}</h5>
-                  <p className="mb-1">Gasoline | 25,000 miles | Sedan</p>
+                  {/* <p className="mb-1">Gasoline | 25,000 miles | Sedan</p> */}
                 </div>
 
                 <div className="valuation-result text-center py-4">
