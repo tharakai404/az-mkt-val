@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from 'react';
 import logoAz from './assets/Allianz.svg'; 
 import { useLocation } from "react-router-dom";
 import axios from 'axios';
@@ -7,6 +7,7 @@ const ValuationResults = () => {
     const { state } = useLocation();
     const {  vehicleType,make,model,year} = state || {};
     const token = sessionStorage.getItem("token");
+    const [valuation, setValuation] = useState(0);
 
     const api = axios.create({
         baseURL: 'http://localhost:8080',
@@ -16,10 +17,27 @@ const ValuationResults = () => {
         },
       });
 
-      const getMkValue = (newValue) => {
-      
-        
-      };
+      useEffect(() => {
+        // Fetch vehicle types and years on initial load
+          api.post('/api/vehicle/market', {
+            type: vehicleType,
+            make: make?.id,
+            model: model?.id,
+            year: year
+          })
+          .then((response) => {
+            console.log(response.data);
+            const data = response.data;
+            console.log("Vehicle Market Data:", data);   
+
+            setValuation(data.valuation);
+          })
+          .catch((error) => {
+            console.error('Failed to load vehicle types', error);
+          });
+    
+    
+      }, []);
 
   return (
     <>
@@ -49,7 +67,7 @@ const ValuationResults = () => {
 
                 <div className="valuation-result text-center py-4">
                   <h6 className="text-muted">Estimated Market Value Range</h6>
-                  <h2 className="display-4 fw-bold text-primary">LKR 2,500,000</h2>
+                  <h2 className="display-4 fw-bold text-primary">LKR {valuation}</h2>
                   <p className="text-muted">Based on current market data and comparable sales</p>
                 </div>
 

@@ -34,7 +34,7 @@ const SearchForm = () => {
 
   const handleValueModelChange = (newValue) => {
     setSelectedModel(newValue);
-   // setModels([]);
+    setYear([]);
     
   };
 
@@ -84,32 +84,36 @@ const SearchForm = () => {
   // Fetch Makes with Autocomplete
   useEffect(() => {
    // if (makeQuery && makeQuery.length >= 3) {
-      if (true) {
       api.get(`/api/makes?vehicleType=${encodeURIComponent(vehicleType)}`)
         .then((response) => setMakes(Array.isArray(response.data) ? response.data : []))
         .catch((error) => {
           console.error('Failed to load makes', error);
           setMakes([]);
         });
-    } else {
-      setMakes([]); // Clear makes if the query length is less than 3
-    }
+  
   }, [makeQuery]);
 
   // Fetch Models with Autocomplete
   useEffect(() => {
     // if (modelQuery.length >= 3 && selectedMake) {
-      if (true) {
       api.get(`/api/models?type=${encodeURIComponent(vehicleType)}&make=${encodeURIComponent(selectedMake?.id)}`)
         .then((response) => setModels(Array.isArray(response.data) ? response.data : []))
         .catch((error) => {
           console.error('Failed to load models', error);
           setModels([]);
-        });
-    } else {
-      setModels([]); // Clear models if the query length is less than 3 or no make selected
-    }
+        });    
   }, [modelQuery, selectedMake]);
+
+    // Fetch Models with Autocomplete
+    useEffect(() => {
+      // if (modelQuery.length >= 3 && selectedMake) {
+        api.get(`/api/years?type=${encodeURIComponent(vehicleType)}&make=${encodeURIComponent(selectedMake?.id)}&model=${encodeURIComponent(selectedModel?.id)}`)
+          .then((response) => setYears(Array.isArray(response.data) ? response.data : []))
+          .catch((error) => {
+            console.error('Failed to load years', error);
+            setYears([]);
+          });    
+    }, [selectedModel]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -168,11 +172,30 @@ const SearchForm = () => {
                           <option key={type} value={type}>{type}</option>
                         ))}
                       </select>
+                    </div>                    
+                    <div className="col-md-6 mb-3">         
+                    <label htmlFor="vehicleType" className="form-label">Vehicle Make</label>
+                      <AutoCompleteDropDown
+                      name="Select Make"
+                      top100Films={makes}
+                     value={setSelectedMake}
+                      onValueChange={handleValueMakeChange}
+                    />
                     </div>
-
-                    
+                  </div>
+                  <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label htmlFor="year" className="form-label">Year</label>
+                  <label htmlFor="year" className="form-label">Vehicle Model</label>
+                      <AutoCompleteDropDown
+                      name="Select Models"
+                   //   getOptionLabel={(option) => (option ? option.label || '' : '')}
+                      top100Films={models}
+                      value={setSelectedModel}
+                       onValueChange={handleValueModelChange}
+                    />
+                    </div>                    
+                    <div className="col-md-6 mb-3">   
+                    <label htmlFor="year" className="form-label">Year</label>
                       <select className="form-select" id="year" required value={year} onChange={(e) => setYear(e.target.value)}>
                         <option value="" disabled>Select Year</option>
                         {years.map((y) => (
@@ -181,30 +204,6 @@ const SearchForm = () => {
                       </select>
                     </div>
                   </div>
-                  <div className="row">
-                    <div className="col-md-6 mb-3">
-                      <label htmlFor="vehicleType" className="form-label">Vehicle Make</label>
-                      <AutoCompleteDropDown
-                      name="Select Make"
-                      top100Films={makes}
-                     value={setSelectedMake}
-                      onValueChange={handleValueMakeChange}
-                    />
-                    </div>
-
-                    
-                    <div className="col-md-6 mb-3">
-                      <label htmlFor="year" className="form-label">Vehicle Model</label>
-                      <AutoCompleteDropDown
-                      name="Select Models"
-                   //   getOptionLabel={(option) => (option ? option.label || '' : '')}
-                      top100Films={models}
-                      value={setSelectedModel}
-                       onValueChange={handleValueModelChange}
-                    />
-                    </div>
-                  </div>
-
                   <div className="row">
                     <div className="col-md-4 mb-3">
                       <button type="submit" className="btn btn-primary w-100">Search</button>
