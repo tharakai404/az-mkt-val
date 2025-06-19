@@ -67,7 +67,7 @@ const ValuationResults = () => {
 
                 <div className="valuation-result text-center py-4">
                   <h6 className="text-muted">Estimated Market Value Range</h6>
-                  <h2 className="display-4 fw-bold text-primary">LKR {valuation}</h2>
+                  <h2 className="display-4 fw-bold text-primary">LKR {valuation.toLocaleString('en-LK')}</h2>
                   <p className="text-muted">Based on current market data and comparable sales</p>
                 </div>
 
@@ -107,7 +107,7 @@ const ValuationResults = () => {
                   <div className="d-grid gap-3">
                     <button className="btn btn-primary btn-lg">Save This Valuation</button>
                     <button className="btn btn-outline-primary">Get Insurance Quote</button>
-                    <a href="search.html" className="btn btn-outline-secondary">Search Another Vehicle</a>
+                    <a href="search" className="btn btn-outline-secondary">Search Another Vehicle</a>
                   </div>
                 </div>
               </div>
